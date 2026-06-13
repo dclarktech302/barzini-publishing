@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: oklch(0.82 0.14 173);         /* teal — functional */
+    --primary-foreground: oklch(0.15 0.05 173);
+    --accent: oklch(0.72 0.12 76);           /* gold — brand */
+    --accent-foreground: oklch(0.15 0.05 76);
+    --background: oklch(0.09 0.004 264);
+    --surface: oklch(0.12 0.004 264);
+    --surface-2: oklch(0.15 0.005 264);
+    --border: rgba(255,255,255,0.07);
+  }
+}
