@@ -30,7 +30,7 @@ import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 
 const PUBLIC_PATHS = ['/login', '/verify-pin', '/api/auth/set-pin']
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
