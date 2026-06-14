@@ -1,1 +1,134 @@
-export default function Placeholder() { return null }
+'use client'
+
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { createClient } from '@/lib/supabase/client'
+import { getDisplayName, getInitials } from '@/lib/utils'
+
+interface TopBarProps {
+  user?: {
+    email?: string
+    user_metadata?: { display_name?: string }
+  }
+}
+
+export default function TopBar({ user }: TopBarProps) {
+  const router = useRouter()
+  const displayName = user ? getDisplayName(user) : 'User'
+  const initials = getInitials(displayName)
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
+  const avatar = (
+    <div
+      className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold flex-shrink-0"
+      style={{
+        background: 'color-mix(in oklch, var(--primary) 20%, transparent)',
+        color: 'var(--primary)',
+      }}
+    >
+      {initials}
+    </div>
+  )
+
+  return (
+    <header
+      className="flex items-center justify-between px-4 md:px-6 h-14 flex-shrink-0"
+      style={{
+        background: 'var(--surface)',
+        borderBottom: '1px solid var(--border)',
+      }}
+    >
+      {/* Mobile: wordmark */}
+      <div className="md:hidden">
+        <span
+          className="text-xs font-semibold tracking-widest uppercase"
+          style={{ color: 'var(--accent)' }}
+        >
+          Barzini Publishing
+        </span>
+      </div>
+
+      {/* Desktop: left placeholder keeps avatar right-aligned */}
+      <div className="hidden md:block" />
+
+      {/* Right: avatar dropdown */}
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <button
+            className="flex items-center gap-2 rounded-lg px-2 py-1.5 outline-none transition-opacity hover:opacity-80"
+            aria-label="User menu"
+          >
+            {avatar}
+            <span
+              className="hidden sm:block text-xs truncate max-w-[140px]"
+              style={{ color: 'rgba(255,255,255,0.55)' }}
+            >
+              {displayName}
+            </span>
+          </button>
+        </DropdownMenu.Trigger>
+
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            align="end"
+            sideOffset={6}
+            className="z-50 min-w-[160px] rounded-xl py-1 outline-none"
+            style={{
+              background: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}
+          >
+            <DropdownMenu.Item asChild>
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 px-4 py-2.5 text-sm outline-none cursor-pointer transition-colors"
+                style={{ color: 'rgba(255,255,255,0.75)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.75)'
+                }}
+              >
+                Settings
+              </Link>
+            </DropdownMenu.Item>
+
+            <DropdownMenu.Separator
+              className="my-1 h-px"
+              style={{ background: 'var(--border)' }}
+            />
+
+            <DropdownMenu.Item asChild>
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-sm outline-none cursor-pointer transition-colors"
+                style={{ color: 'rgba(255,255,255,0.75)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                  e.currentTarget.style.color = 'white'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent'
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.75)'
+                }}
+              >
+                Sign out
+              </button>
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
+    </header>
+  )
+}

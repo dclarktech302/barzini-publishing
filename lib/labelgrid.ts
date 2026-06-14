@@ -105,16 +105,16 @@ export async function createRelease(data: Partial<Release>): Promise<Release> {
 export async function getRoyaltySummary(days: 30 | 90 | 365): Promise<RoyaltySummary> {
   void lgFetch
   return {
-    totalRevenue: 48200,
-    artistRoyaltiesOwed: 33740,
-    pendingPayouts: 12400,
-    labelRetained: 14460,
+    totalRevenue: 28940,
+    artistRoyaltiesOwed: 18402,
+    pendingPayouts: 6180,
+    labelRetained: 10538,
     periodDays: days,
     revenueByPlatform: [
-      { platform: 'Spotify', revenue: 22100, streams: 1840000 },
-      { platform: 'Apple Music', revenue: 14300, streams: 920000 },
-      { platform: 'YouTube Music', revenue: 7200, streams: 610000 },
-      { platform: 'Tidal', revenue: 4600, streams: 210000 },
+      { platform: 'Spotify', revenue: 13240, streams: 1840000 },
+      { platform: 'Apple Music', revenue: 8610, streams: 920000 },
+      { platform: 'YouTube Music', revenue: 4320, streams: 610000 },
+      { platform: 'Tidal', revenue: 2770, streams: 210000 },
     ],
     topArtists: [
       {
@@ -123,7 +123,7 @@ export async function getRoyaltySummary(days: 30 | 90 | 365): Promise<RoyaltySum
         initials: 'NV',
         splitPercentage: 70,
         releaseCount: 8,
-        royaltyOwed: 18400,
+        royaltyOwed: 11200,
         deltaPercent: 12.4,
       },
       {
@@ -132,7 +132,7 @@ export async function getRoyaltySummary(days: 30 | 90 | 365): Promise<RoyaltySum
         initials: 'DM',
         splitPercentage: 65,
         releaseCount: 5,
-        royaltyOwed: 9200,
+        royaltyOwed: 7202,
         deltaPercent: -3.1,
       },
     ],
