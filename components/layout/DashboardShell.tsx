@@ -8,7 +8,9 @@ export default async function DashboardShell({ children }: { children: React.Rea
     data: { user },
   } = await supabase.auth.getUser()
 
-  const email = user?.email ?? undefined
+  const topBarUser = user
+    ? { email: user.email ?? undefined, user_metadata: user.user_metadata ?? undefined }
+    : undefined
 
   return (
     <div
@@ -17,7 +19,7 @@ export default async function DashboardShell({ children }: { children: React.Rea
     >
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
-        <TopBar email={email} />
+        <TopBar user={topBarUser} />
         <main className="flex-1 p-4 md:p-6 lg:p-8 pb-20 md:pb-6 min-w-0">
           {children}
         </main>

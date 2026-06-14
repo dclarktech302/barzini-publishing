@@ -28,7 +28,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/login', '/verify-pin', '/api/auth/set-pin']
+const PUBLIC_PATHS = ['/login', '/verify-pin', '/forgot-pin', '/reset-pin', '/api/auth/set-pin']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl

@@ -1,12 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { validatePin } from '@/lib/pin-auth'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message')
+
   const [email, setEmail] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -44,10 +48,7 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center px-4"
     >
       <div
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-        }}
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
         className="w-full max-w-sm rounded-xl p-8"
       >
         <div className="mb-8 text-center">
@@ -60,11 +61,26 @@ export default function LoginPage() {
           <h1 className="mt-2 text-xl font-semibold text-white">Sign in</h1>
         </div>
 
+        {/* Success/info message from query param */}
+        {message && (
+          <div
+            className="mb-5 rounded-lg px-4 py-3 text-sm"
+            style={{
+              background: 'rgba(61,219,184,0.1)',
+              border: '1px solid rgba(61,219,184,0.2)',
+              color: 'var(--primary)',
+            }}
+          >
+            {decodeURIComponent(message)}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label
               htmlFor="email"
-              className="block text-xs font-medium text-white/60 uppercase tracking-wider"
+              className="block text-xs font-medium uppercase tracking-wider"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
             >
               Email
             </label>
@@ -88,7 +104,8 @@ export default function LoginPage() {
           <div className="space-y-1">
             <label
               htmlFor="pin"
-              className="block text-xs font-medium text-white/60 uppercase tracking-wider"
+              className="block text-xs font-medium uppercase tracking-wider"
+              style={{ color: 'rgba(255,255,255,0.5)' }}
             >
               PIN
             </label>
@@ -113,9 +130,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-400">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-400">{error}</p>}
 
           <button
             type="submit"
@@ -125,8 +140,26 @@ export default function LoginPage() {
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
+
+          <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <Link
+              href="/forgot-pin"
+              className="underline underline-offset-2 transition-opacity hover:opacity-70"
+              style={{ color: 'var(--primary)' }}
+            >
+              Forgot PIN?
+            </Link>
+          </p>
         </form>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }
