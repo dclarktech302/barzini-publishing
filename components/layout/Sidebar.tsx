@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
-import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, X } from 'lucide-react'
+import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, LogOut, X } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 const MAIN_NAV = [
   { href: '/', label: 'Dashboard', Icon: LayoutGrid },
@@ -12,9 +13,8 @@ const MAIN_NAV = [
   { href: '/royalties', label: 'Royalties', Icon: Banknote },
   { href: '/distribution', label: 'Distribution', Icon: Radio },
   { href: '/analytics', label: 'Analytics', Icon: BarChart3 },
+  { href: '/settings', label: 'Settings', Icon: Settings },
 ]
-
-const SETTINGS_NAV = [{ href: '/settings', label: 'Settings', Icon: Settings }]
 
 interface SidebarProps {
   open: boolean
@@ -72,36 +72,50 @@ function BrandMark() {
 
 export default function Sidebar({ open, onOpenChange }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   function NavContent({ onNavClick }: { onNavClick?: () => void }) {
     return (
-      <>
-        <nav className="flex flex-col gap-1 px-3 pt-2 flex-1">
-          {MAIN_NAV.map(({ href, label, Icon }) => (
-            <NavLink
-              key={href}
-              href={href}
-              label={label}
-              Icon={Icon}
-              active={pathname === href}
-              onClick={onNavClick}
-            />
-          ))}
-        </nav>
-        <div className="px-3 pb-4">
-          <div className="h-px mb-3" style={{ background: 'var(--border)' }} />
-          {SETTINGS_NAV.map(({ href, label, Icon }) => (
-            <NavLink
-              key={href}
-              href={href}
-              label={label}
-              Icon={Icon}
-              active={pathname === href}
-              onClick={onNavClick}
-            />
-          ))}
-        </div>
-      </>
+      <nav className="flex flex-col gap-1 px-3 pt-2 pb-4">
+        {MAIN_NAV.map(({ href, label, Icon }) => (
+          <NavLink
+            key={href}
+            href={href}
+            label={label}
+            Icon={Icon}
+            active={pathname === href}
+            onClick={onNavClick}
+          />
+        ))}
+        <button
+          onClick={async () => {
+            onNavClick?.()
+            await handleSignOut()
+          }}
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors text-left"
+          style={{
+            color: 'rgba(255,255,255,0.55)',
+            background: 'transparent',
+            borderLeft: '2px solid transparent',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'rgba(255,255,255,0.55)'
+          }}
+        >
+          <LogOut size={16} strokeWidth={1.6} />
+          Sign out
+        </button>
+      </nav>
     )
   }
 
