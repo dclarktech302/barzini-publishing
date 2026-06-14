@@ -11,6 +11,7 @@ function VerifyPinContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [stage, setStage] = useState<Stage>('loading')
+  const [displayName, setDisplayName] = useState('')
   const [pin, setPin] = useState('')
   const [confirmPin, setConfirmPin] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -49,11 +50,16 @@ function VerifyPinContent() {
       return
     }
 
+    if (!displayName.trim()) {
+      setError('Please enter your name')
+      return
+    }
+
     setStage('submitting')
     const res = await fetch('/api/auth/set-pin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin }),
+      body: JSON.stringify({ pin, displayName: displayName.trim() }),
     })
     const data = await res.json()
 
@@ -105,6 +111,26 @@ function VerifyPinContent() {
 
         {(stage === 'setup' || stage === 'submitting') && (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1">
+              <label
+                htmlFor="display-name"
+                className="block text-xs font-medium text-white/60 uppercase tracking-wider"
+              >
+                Your name
+              </label>
+              <input
+                id="display-name"
+                type="text"
+                autoComplete="name"
+                required
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                style={inputStyle}
+                className="w-full rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-1"
+                placeholder="e.g. Jane Smith"
+              />
+            </div>
+
             <div className="space-y-1">
               <label
                 htmlFor="pin"

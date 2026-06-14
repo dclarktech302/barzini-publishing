@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { validatePin } from '@/lib/pin-auth'
 
 export async function POST(req: Request) {
-  const { pin } = await req.json()
+  const { pin, displayName } = await req.json() as { pin: string; displayName?: string }
 
   if (!validatePin(pin)) {
     return Response.json({ error: 'PIN must be 6-8 digits' }, { status: 400 })
@@ -23,7 +23,10 @@ export async function POST(req: Request) {
     return Response.json({ error: updateError.message }, { status: 400 })
   }
 
-  const { error: metaError } = await supabase.auth.updateUser({ data: { pin_set: true } })
+  const metaUpdate: Record<string, unknown> = { pin_set: true }
+  if (displayName?.trim()) metaUpdate.display_name = displayName.trim()
+
+  const { error: metaError } = await supabase.auth.updateUser({ data: metaUpdate })
   if (metaError) {
     return Response.json({ error: metaError.message }, { status: 400 })
   }
