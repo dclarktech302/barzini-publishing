@@ -63,7 +63,7 @@ function VerifyPinContent() {
       return
     }
 
-    router.push('/dashboard')
+    router.push('/')
   }
 
   const cardStyle = {
