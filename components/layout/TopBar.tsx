@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { Menu } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getDisplayName, getInitials } from '@/lib/utils'
 
@@ -11,9 +11,10 @@ interface TopBarProps {
     email?: string
     user_metadata?: { display_name?: string }
   }
+  onMenuClick?: () => void
 }
 
-export default function TopBar({ user }: TopBarProps) {
+export default function TopBar({ user, onMenuClick }: TopBarProps) {
   const router = useRouter()
   const displayName = user ? getDisplayName(user) : 'User'
   const initials = getInitials(displayName)
@@ -45,15 +46,15 @@ export default function TopBar({ user }: TopBarProps) {
         borderBottom: '1px solid var(--border)',
       }}
     >
-      {/* Mobile: wordmark */}
-      <div className="md:hidden">
-        <span
-          className="text-xs font-semibold tracking-widest uppercase"
-          style={{ color: 'var(--accent)' }}
-        >
-          Barzini Publishing
-        </span>
-      </div>
+      {/* Mobile: hamburger button */}
+      <button
+        className="md:hidden rounded-lg p-1.5 transition-opacity hover:opacity-70"
+        style={{ color: 'rgba(255,255,255,0.55)' }}
+        onClick={onMenuClick}
+        aria-label="Open menu"
+      >
+        <Menu size={20} />
+      </button>
 
       {/* Desktop: left placeholder keeps avatar right-aligned */}
       <div className="hidden md:block" />
@@ -86,29 +87,6 @@ export default function TopBar({ user }: TopBarProps) {
               boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
             }}
           >
-            <DropdownMenu.Item asChild>
-              <Link
-                href="/settings"
-                className="flex items-center gap-2 px-4 py-2.5 text-sm outline-none cursor-pointer transition-colors"
-                style={{ color: 'rgba(255,255,255,0.75)' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                  e.currentTarget.style.color = 'white'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent'
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.75)'
-                }}
-              >
-                Settings
-              </Link>
-            </DropdownMenu.Item>
-
-            <DropdownMenu.Separator
-              className="my-1 h-px"
-              style={{ background: 'var(--border)' }}
-            />
-
             <DropdownMenu.Item asChild>
               <button
                 onClick={handleSignOut}
