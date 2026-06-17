@@ -6,6 +6,7 @@ import type {
   Release,
   RoyaltyStatement,
   RoyaltySummary,
+  SyncEvent,
 } from '@/lib/types'
 
 const LABELGRID_BASE = process.env.LABELGRID_API_URL ?? 'https://api.labelgrid.com'
@@ -343,7 +344,36 @@ export async function getAnalyticsStreams(days: number): Promise<PlatformRevenue
     { platform: 'YouTube Music', revenue: 7200, streams: 610000 },
     { platform: 'Tidal', revenue: 4600, streams: 210000 },
     { platform: 'Amazon Music', revenue: 2100, streams: 98000 },
+    { platform: 'Other DSPs', revenue: 980, streams: 42000 },
   ]
+}
+
+export async function getStreamsTimeseries(days: number): Promise<{ date: string; streams: number }[]> {
+  void lgFetch
+  const result: { date: string; streams: number }[] = []
+  const base = 18000
+  const seed = [0.2, -0.3, 0.5, 0.1, -0.1, 0.6, -0.2, 0.4, 0.3, -0.4,
+                0.7, 0.1, -0.2, 0.5, 0.2, -0.1, 0.8, 0.3, 0.1, -0.3,
+                0.4, 0.6, -0.1, 0.3, 0.5, 0.2, -0.2, 0.7, 0.4, 0.1,
+                0.3, -0.1, 0.6, 0.2, 0.4, -0.3, 0.8, 0.1, 0.5, 0.3,
+                -0.2, 0.7, 0.2, 0.4, 0.1, -0.1, 0.5, 0.3, 0.6, 0.2,
+                0.4, -0.1, 0.7, 0.3, 0.1, 0.5, -0.2, 0.6, 0.4, 0.2,
+                0.3, 0.5, -0.1, 0.7, 0.2, 0.4, 0.1, -0.2, 0.6, 0.3,
+                0.5, 0.2, 0.4, -0.1, 0.7, 0.3, 0.1, 0.5, 0.2, 0.4,
+                -0.1, 0.6, 0.3, 0.5, 0.2, 0.4, 0.1, -0.1, 0.6, 0.3,
+                0.5, 0.2, 0.4, 0.1, -0.1, 0.6, 0.3, 0.5, 0.2, 0.4]
+  const now = new Date('2026-06-15')
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    const trend = ((days - 1 - i) / (days - 1)) * 8000
+    const noise = Math.round((seed[i % seed.length]) * 2800)
+    result.push({
+      date: d.toISOString().slice(0, 10),
+      streams: Math.max(8000, Math.round(base + trend + noise)),
+    })
+  }
+  return result
 }
 
 // TODO: GET /distro-queue — see groups/distro-queue
@@ -353,32 +383,121 @@ export async function getDistributionStatus(): Promise<DistributionChannel[]> {
     {
       platform: 'Spotify',
       connected: true,
-      lastSyncAt: '2025-06-12T14:30:00Z',
+      lastSyncAt: '2026-06-15T18:52:00Z',
       status: 'healthy',
-      deliveryCount: 42,
+      deliveryCount: 4,
     },
     {
       platform: 'Apple Music',
       connected: true,
-      lastSyncAt: '2025-06-12T14:30:00Z',
+      lastSyncAt: '2026-06-15T18:52:00Z',
       status: 'healthy',
-      deliveryCount: 42,
+      deliveryCount: 3,
     },
     {
       platform: 'YouTube Music',
       connected: true,
-      lastSyncAt: '2025-06-11T09:15:00Z',
-      status: 'warning',
-      errorMessage: 'Delayed sync — retry scheduled',
-      deliveryCount: 39,
+      lastSyncAt: '2026-06-15T16:10:00Z',
+      status: 'healthy',
+      deliveryCount: 0,
     },
     {
       platform: 'Tidal',
       connected: false,
-      lastSyncAt: '2025-06-08T16:00:00Z',
-      status: 'error',
-      errorMessage: 'Authentication token expired',
-      deliveryCount: 38,
+      lastSyncAt: '2026-06-13T09:00:00Z',
+      status: 'warning',
+      errorMessage: 'Authentication token expired — reconnect required',
+      deliveryCount: 2,
+    },
+    {
+      platform: 'Amazon Music',
+      connected: true,
+      lastSyncAt: '2026-06-15T17:30:00Z',
+      status: 'healthy',
+      deliveryCount: 1,
+    },
+    {
+      platform: 'Other DSPs',
+      connected: true,
+      lastSyncAt: '2026-06-15T14:00:00Z',
+      status: 'healthy',
+      deliveryCount: 0,
+    },
+  ]
+}
+
+export async function getSyncEvents(): Promise<SyncEvent[]> {
+  void lgFetch
+  return [
+    {
+      id: 'evt-001',
+      platform: 'Spotify',
+      eventType: 'delivery',
+      message: 'Midnight Tide delivered to Spotify',
+      occurredAt: '2026-06-15T18:52:00Z',
+    },
+    {
+      id: 'evt-002',
+      platform: 'Apple Music',
+      eventType: 'delivery',
+      message: 'Midnight Tide delivered to Apple Music',
+      occurredAt: '2026-06-15T18:51:00Z',
+    },
+    {
+      id: 'evt-003',
+      platform: 'Spotify',
+      eventType: 'sync',
+      message: 'Routine sync completed — all assets verified',
+      occurredAt: '2026-06-15T16:10:00Z',
+    },
+    {
+      id: 'evt-004',
+      platform: 'Amazon Music',
+      eventType: 'delivery',
+      message: 'Low Country delivered to Amazon Music',
+      occurredAt: '2026-06-15T14:20:00Z',
+    },
+    {
+      id: 'evt-005',
+      platform: 'Tidal',
+      eventType: 'error',
+      message: 'Tidal sync failed — authentication token expired',
+      occurredAt: '2026-06-13T09:00:00Z',
+    },
+    {
+      id: 'evt-006',
+      platform: 'All platforms',
+      eventType: 'payout',
+      message: 'Payout processed for Theo Marsh — $4,210.00',
+      occurredAt: '2026-06-12T11:00:00Z',
+    },
+    {
+      id: 'evt-007',
+      platform: 'Spotify',
+      eventType: 'delivery',
+      message: 'Undertow delivered to Spotify',
+      occurredAt: '2026-06-11T09:15:00Z',
+    },
+    {
+      id: 'evt-008',
+      platform: 'Apple Music',
+      eventType: 'sync',
+      message: 'Metadata refresh completed for Harbour Lights',
+      occurredAt: '2026-06-10T15:40:00Z',
+    },
+    {
+      id: 'evt-009',
+      platform: 'All platforms',
+      eventType: 'payout',
+      message: 'Payout processed for Nine Rivers — $2,890.00',
+      occurredAt: '2026-06-09T10:00:00Z',
+    },
+    {
+      id: 'evt-010',
+      platform: 'Tidal',
+      eventType: 'delivery',
+      message: 'Undertow delivered to Tidal',
+      occurredAt: '2026-06-08T08:30:00Z',
     },
   ]
 }
