@@ -29,8 +29,16 @@ export interface Release {
   status: 'draft' | 'scheduled' | 'processing' | 'live'
   releaseDate: string
   coverArtUrl?: string
+  smartLinkUrl?: string
   platforms: Platform[]
   labelgridId?: string
+}
+
+export interface ReleaseInsight {
+  releaseId: string
+  totalStreams: number
+  totalRevenue: number
+  platformBreakdown: PlatformRevenue[]
 }
 
 export interface Platform {

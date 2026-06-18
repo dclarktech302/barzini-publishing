@@ -3,6 +3,7 @@ import type { PlatformRevenue } from '@/lib/types'
 interface AnalyticsSummaryProps {
   platforms: PlatformRevenue[]
   timeseries: { date: string; streams: number }[]
+  days?: number
 }
 
 function Sparkline({ points, color }: { points: number[]; color: string }) {
@@ -35,10 +36,10 @@ function Sparkline({ points, color }: { points: number[]; color: string }) {
   )
 }
 
-export default function AnalyticsSummary({ platforms, timeseries }: AnalyticsSummaryProps) {
+export default function AnalyticsSummary({ platforms, timeseries, days = 90 }: AnalyticsSummaryProps) {
   const totalStreams = platforms.reduce((s, p) => s + p.streams, 0)
   const totalRevenue = platforms.reduce((s, p) => s + p.revenue, 0)
-  const avgDaily = timeseries.length > 0 ? Math.round(totalStreams / 90) : 0
+  const avgDaily = timeseries.length > 0 ? Math.round(totalStreams / days) : 0
   const newListeners = Math.round(totalStreams * 0.18)
 
   const streamPoints = timeseries.map((d) => d.streams)

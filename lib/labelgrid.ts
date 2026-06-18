@@ -4,6 +4,7 @@ import type {
   Platform,
   PlatformRevenue,
   Release,
+  ReleaseInsight,
   RoyaltyStatement,
   RoyaltySummary,
   SyncEvent,
@@ -50,6 +51,7 @@ export async function getReleases(): Promise<Release[]> {
       type: 'single',
       status: 'live',
       releaseDate: '2025-02-14',
+      smartLinkUrl: 'https://labelgrid.link/midnight-tide',
       platforms: [
         { name: 'spotify', status: 'live', lastSyncAt: '2025-02-14T10:00:00Z' },
         { name: 'apple_music', status: 'live', lastSyncAt: '2025-02-14T10:00:00Z' },
@@ -65,6 +67,7 @@ export async function getReleases(): Promise<Release[]> {
       type: 'ep',
       status: 'scheduled',
       releaseDate: '2025-08-01',
+      smartLinkUrl: 'https://labelgrid.link/shoreline-sessions',
       platforms: [
         { name: 'spotify', status: 'pending' },
         { name: 'apple_music', status: 'pending' },
@@ -89,6 +92,7 @@ export async function getReleases(): Promise<Release[]> {
       type: 'ep',
       status: 'live',
       releaseDate: '2024-11-08',
+      smartLinkUrl: 'https://labelgrid.link/harbour-lights',
       platforms: [
         { name: 'spotify', status: 'live', lastSyncAt: '2024-11-08T12:00:00Z' },
         { name: 'apple_music', status: 'live', lastSyncAt: '2024-11-08T12:00:00Z' },
@@ -104,6 +108,7 @@ export async function getReleases(): Promise<Release[]> {
       type: 'single',
       status: 'live',
       releaseDate: '2025-03-22',
+      smartLinkUrl: 'https://labelgrid.link/undertow',
       platforms: [
         { name: 'spotify', status: 'live', lastSyncAt: '2025-03-22T09:00:00Z' },
         { name: 'tidal', status: 'live', lastSyncAt: '2025-03-22T10:00:00Z' },
@@ -156,6 +161,7 @@ export async function getReleases(): Promise<Release[]> {
       type: 'single',
       status: 'live',
       releaseDate: '2025-01-18',
+      smartLinkUrl: 'https://labelgrid.link/low-country',
       platforms: [
         { name: 'spotify', status: 'live', lastSyncAt: '2025-01-18T10:00:00Z' },
         { name: 'apple_music', status: 'live', lastSyncAt: '2025-01-18T10:00:00Z' },
@@ -187,16 +193,150 @@ export async function createRelease(data: Partial<Release>): Promise<Release> {
   }
 }
 
+// TODO: GET /releases/{release}/insight — see groups/releases
+export async function getReleaseInsight(releaseId: string): Promise<ReleaseInsight> {
+  void lgFetch
+  const MOCK: Record<string, ReleaseInsight> = {
+    'release-001': {
+      releaseId: 'release-001',
+      totalStreams: 620000,
+      totalRevenue: 7440,
+      platformBreakdown: [
+        { platform: 'Spotify', revenue: 4100, streams: 380000 },
+        { platform: 'Apple Music', revenue: 2800, streams: 190000 },
+        { platform: 'Tidal', revenue: 540, streams: 50000 },
+      ],
+    },
+    'release-004': {
+      releaseId: 'release-004',
+      totalStreams: 480000,
+      totalRevenue: 5760,
+      platformBreakdown: [
+        { platform: 'Spotify', revenue: 3200, streams: 300000 },
+        { platform: 'Apple Music', revenue: 2100, streams: 145000 },
+        { platform: 'Amazon Music', revenue: 460, streams: 35000 },
+      ],
+    },
+    'release-005': {
+      releaseId: 'release-005',
+      totalStreams: 310000,
+      totalRevenue: 3720,
+      platformBreakdown: [
+        { platform: 'Spotify', revenue: 2800, streams: 240000 },
+        { platform: 'Tidal', revenue: 920, streams: 70000 },
+      ],
+    },
+    'release-009': {
+      releaseId: 'release-009',
+      totalStreams: 195000,
+      totalRevenue: 2340,
+      platformBreakdown: [
+        { platform: 'Spotify', revenue: 1400, streams: 120000 },
+        { platform: 'Apple Music', revenue: 940, streams: 75000 },
+      ],
+    },
+  }
+  return (
+    MOCK[releaseId] ?? {
+      releaseId,
+      totalStreams: 42000,
+      totalRevenue: 504,
+      platformBreakdown: [{ platform: 'Spotify', revenue: 504, streams: 42000 }],
+    }
+  )
+}
+
 // TODO: aggregate from /statements — see groups/statements
-// Confirm exact list/filter params against live docs before wiring up
 export async function getRoyaltySummary(days: 30 | 90 | 365): Promise<RoyaltySummary> {
   void lgFetch
+  if (days === 30) {
+    return {
+      totalRevenue: 8820,
+      artistRoyaltiesOwed: 5640,
+      pendingPayouts: 2100,
+      labelRetained: 3180,
+      periodDays: 30,
+      revenueByPlatform: [
+        { platform: 'Spotify', revenue: 4050, streams: 560000 },
+        { platform: 'Apple Music', revenue: 2620, streams: 280000 },
+        { platform: 'YouTube Music', revenue: 1300, streams: 190000 },
+        { platform: 'Tidal', revenue: 850, streams: 65000 },
+      ],
+      topArtists: [
+        {
+          artistId: 'artist-001',
+          artistName: 'Theo Marsh',
+          initials: 'TM',
+          splitPercentage: 70,
+          releaseCount: 4,
+          royaltyOwed: 3410,
+          deltaPercent: 7.2,
+        },
+        {
+          artistId: 'artist-003',
+          artistName: 'Nine Rivers',
+          initials: 'NR',
+          splitPercentage: 70,
+          releaseCount: 3,
+          royaltyOwed: 2230,
+          deltaPercent: -1.8,
+        },
+      ],
+    }
+  }
+
+  if (days === 365) {
+    return {
+      totalRevenue: 98200,
+      artistRoyaltiesOwed: 62400,
+      pendingPayouts: 18600,
+      labelRetained: 35800,
+      periodDays: 365,
+      revenueByPlatform: [
+        { platform: 'Spotify', revenue: 45100, streams: 6200000 },
+        { platform: 'Apple Music', revenue: 29300, streams: 3100000 },
+        { platform: 'YouTube Music', revenue: 14800, streams: 2050000 },
+        { platform: 'Tidal', revenue: 9000, streams: 710000 },
+      ],
+      topArtists: [
+        {
+          artistId: 'artist-001',
+          artistName: 'Theo Marsh',
+          initials: 'TM',
+          splitPercentage: 70,
+          releaseCount: 4,
+          royaltyOwed: 38200,
+          deltaPercent: 22.1,
+        },
+        {
+          artistId: 'artist-003',
+          artistName: 'Nine Rivers',
+          initials: 'NR',
+          splitPercentage: 70,
+          releaseCount: 3,
+          royaltyOwed: 24200,
+          deltaPercent: 11.4,
+        },
+        {
+          artistId: 'artist-002',
+          artistName: 'Coral & Vine',
+          initials: 'CV',
+          splitPercentage: 65,
+          releaseCount: 2,
+          royaltyOwed: 0,
+          deltaPercent: 0,
+        },
+      ],
+    }
+  }
+
+  // 90d — existing approved figures
   return {
     totalRevenue: 28940,
     artistRoyaltiesOwed: 18402,
     pendingPayouts: 6180,
     labelRetained: 10538,
-    periodDays: days,
+    periodDays: 90,
     revenueByPlatform: [
       { platform: 'Spotify', revenue: 13240, streams: 1840000 },
       { platform: 'Apple Music', revenue: 8610, streams: 920000 },
@@ -205,20 +345,20 @@ export async function getRoyaltySummary(days: 30 | 90 | 365): Promise<RoyaltySum
     ],
     topArtists: [
       {
-        artistId: 'art-001',
-        artistName: 'Nova Vega',
-        initials: 'NV',
+        artistId: 'artist-001',
+        artistName: 'Theo Marsh',
+        initials: 'TM',
         splitPercentage: 70,
-        releaseCount: 8,
+        releaseCount: 4,
         royaltyOwed: 11200,
         deltaPercent: 12.4,
       },
       {
-        artistId: 'art-002',
-        artistName: 'Dray Montez',
-        initials: 'DM',
-        splitPercentage: 65,
-        releaseCount: 5,
+        artistId: 'artist-003',
+        artistName: 'Nine Rivers',
+        initials: 'NR',
+        splitPercentage: 70,
+        releaseCount: 3,
         royaltyOwed: 7202,
         deltaPercent: -3.1,
       },
@@ -232,8 +372,8 @@ export async function getRoyaltyStatements(artistId?: string): Promise<RoyaltySt
   const statements: RoyaltyStatement[] = [
     {
       id: 'stmt-001',
-      artistId: 'art-001',
-      artistName: 'Nova Vega',
+      artistId: 'artist-001',
+      artistName: 'Theo Marsh',
       periodStart: '2025-01-01',
       periodEnd: '2025-03-31',
       grossRevenue: 26300,
@@ -248,8 +388,8 @@ export async function getRoyaltyStatements(artistId?: string): Promise<RoyaltySt
     },
     {
       id: 'stmt-002',
-      artistId: 'art-002',
-      artistName: 'Dray Montez',
+      artistId: 'artist-003',
+      artistName: 'Nine Rivers',
       periodStart: '2025-01-01',
       periodEnd: '2025-03-31',
       grossRevenue: 14200,
@@ -335,9 +475,29 @@ export async function getArtists(): Promise<Artist[]> {
 }
 
 // TODO: GET /analytics — see groups/analytics
-export async function getAnalyticsStreams(days: number): Promise<PlatformRevenue[]> {
+export async function getAnalyticsStreams(days: 30 | 90 | 365): Promise<PlatformRevenue[]> {
   void lgFetch
-  void days
+  if (days === 30) {
+    return [
+      { platform: 'Spotify', revenue: 7200, streams: 600000 },
+      { platform: 'Apple Music', revenue: 4600, streams: 300000 },
+      { platform: 'YouTube Music', revenue: 2300, streams: 200000 },
+      { platform: 'Tidal', revenue: 1400, streams: 68000 },
+      { platform: 'Amazon Music', revenue: 640, streams: 30000 },
+      { platform: 'Other DSPs', revenue: 290, streams: 13000 },
+    ]
+  }
+  if (days === 365) {
+    return [
+      { platform: 'Spotify', revenue: 76200, streams: 6400000 },
+      { platform: 'Apple Music', revenue: 49400, streams: 3200000 },
+      { platform: 'YouTube Music', revenue: 24800, streams: 2100000 },
+      { platform: 'Tidal', revenue: 15900, streams: 730000 },
+      { platform: 'Amazon Music', revenue: 7200, streams: 340000 },
+      { platform: 'Other DSPs', revenue: 3400, streams: 148000 },
+    ]
+  }
+  // 90d — existing approved figures
   return [
     { platform: 'Spotify', revenue: 22100, streams: 1840000 },
     { platform: 'Apple Music', revenue: 14300, streams: 920000 },
@@ -348,32 +508,36 @@ export async function getAnalyticsStreams(days: number): Promise<PlatformRevenue
   ]
 }
 
-export async function getStreamsTimeseries(days: number): Promise<{ date: string; streams: number }[]> {
-  void lgFetch
-  const result: { date: string; streams: number }[] = []
-  const base = 18000
+function buildTimeseries(
+  days: number,
+  base: number,
+  trendTotal: number,
+): { date: string; streams: number }[] {
   const seed = [0.2, -0.3, 0.5, 0.1, -0.1, 0.6, -0.2, 0.4, 0.3, -0.4,
                 0.7, 0.1, -0.2, 0.5, 0.2, -0.1, 0.8, 0.3, 0.1, -0.3,
                 0.4, 0.6, -0.1, 0.3, 0.5, 0.2, -0.2, 0.7, 0.4, 0.1,
                 0.3, -0.1, 0.6, 0.2, 0.4, -0.3, 0.8, 0.1, 0.5, 0.3,
-                -0.2, 0.7, 0.2, 0.4, 0.1, -0.1, 0.5, 0.3, 0.6, 0.2,
-                0.4, -0.1, 0.7, 0.3, 0.1, 0.5, -0.2, 0.6, 0.4, 0.2,
-                0.3, 0.5, -0.1, 0.7, 0.2, 0.4, 0.1, -0.2, 0.6, 0.3,
-                0.5, 0.2, 0.4, -0.1, 0.7, 0.3, 0.1, 0.5, 0.2, 0.4,
-                -0.1, 0.6, 0.3, 0.5, 0.2, 0.4, 0.1, -0.1, 0.6, 0.3,
-                0.5, 0.2, 0.4, 0.1, -0.1, 0.6, 0.3, 0.5, 0.2, 0.4]
+                -0.2, 0.7, 0.2, 0.4, 0.1, -0.1, 0.5, 0.3, 0.6, 0.2]
   const now = new Date('2026-06-15')
+  const result: { date: string; streams: number }[] = []
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(now)
     d.setDate(d.getDate() - i)
-    const trend = ((days - 1 - i) / (days - 1)) * 8000
-    const noise = Math.round((seed[i % seed.length]) * 2800)
+    const trend = ((days - 1 - i) / (days - 1)) * trendTotal
+    const noise = Math.round((seed[i % seed.length]) * (base * 0.14))
     result.push({
       date: d.toISOString().slice(0, 10),
-      streams: Math.max(8000, Math.round(base + trend + noise)),
+      streams: Math.max(Math.round(base * 0.4), Math.round(base + trend + noise)),
     })
   }
   return result
+}
+
+export async function getStreamsTimeseries(days: 30 | 90 | 365): Promise<{ date: string; streams: number }[]> {
+  void lgFetch
+  if (days === 30) return buildTimeseries(30, 15000, 4000)
+  if (days === 365) return buildTimeseries(365, 12000, 18000)
+  return buildTimeseries(90, 18000, 8000)
 }
 
 // TODO: GET /distro-queue — see groups/distro-queue
