@@ -1,3 +1,6 @@
+'use client'
+
+import { Download } from 'lucide-react'
 import type { RoyaltyStatement } from '@/lib/types'
 
 interface PayoutTableProps {
@@ -26,26 +29,17 @@ function fmtPeriod(start: string, end: string) {
   return `${s} – ${e}`
 }
 
-// paid → teal, pending → gold, processing → neutral
 const STATUS_STYLES: Record<
   RoyaltyStatement['status'],
   { label: string; color: string; bg: string }
 > = {
-  paid: {
-    label: 'Paid',
-    color: 'var(--primary)',
-    bg: 'rgba(61,219,184,0.1)',
-  },
+  paid: { label: 'Paid', color: 'var(--primary)', bg: 'rgba(61,219,184,0.1)' },
   pending: {
     label: 'Pending',
     color: 'var(--accent)',
     bg: 'color-mix(in oklch, var(--accent) 12%, transparent)',
   },
-  processing: {
-    label: 'Processing',
-    color: 'rgba(255,255,255,0.5)',
-    bg: 'var(--surface-2)',
-  },
+  processing: { label: 'Processing', color: 'rgba(255,255,255,0.5)', bg: 'var(--surface-2)' },
 }
 
 function StatusPill({ status }: { status: RoyaltyStatement['status'] }) {
@@ -60,6 +54,31 @@ function StatusPill({ status }: { status: RoyaltyStatement['status'] }) {
   )
 }
 
+function exportCsv(statements: RoyaltyStatement[]) {
+  const headers = ['Artist', 'Period', 'Gross Revenue', 'Split %', 'Royalty Owed', 'Status', 'Date']
+  const rows = statements.map((s) => [
+    s.artistName,
+    fmtPeriod(s.periodStart, s.periodEnd),
+    s.grossRevenue.toString(),
+    s.splitPercentage.toString(),
+    s.royaltyOwed.toString(),
+    s.status,
+    s.paidAt
+      ? fmtDate(s.paidAt)
+      : s.scheduledPayoutDate
+        ? fmtDate(s.scheduledPayoutDate)
+        : '',
+  ])
+  const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `barzini-royalties-${Date.now()}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const mono: React.CSSProperties = { fontFamily: 'var(--font-mono)' }
 
 export default function PayoutTable({ statements }: PayoutTableProps) {
@@ -70,7 +89,6 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
       className="rounded-xl overflow-hidden min-w-0"
       style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
     >
-      {/* Gradient hairline */}
       <div
         className="h-px w-full flex-shrink-0"
         style={{
@@ -79,11 +97,23 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
         }}
       />
 
-      <div className="px-5 py-4">
+      <div className="px-5 py-4 flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-white">Payout History</h3>
+        <button
+          onClick={() => exportCsv(statements)}
+          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-opacity hover:opacity-70"
+          style={{
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--primary)',
+          }}
+        >
+          <Download size={12} strokeWidth={2} />
+          Export CSV
+        </button>
       </div>
 
-      {/* ── MOBILE: card list (< md) ── */}
+      {/* Mobile: card list */}
       <div className="block md:hidden">
         {statements.map((s) => (
           <div
@@ -91,24 +121,18 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
             className="mx-4 mb-3 rounded-lg p-4 flex flex-col gap-2"
             style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
-            {/* Row 1: artist + status */}
             <div className="flex items-center justify-between gap-2 min-w-0">
               <span className="text-sm font-semibold text-white truncate">{s.artistName}</span>
               <StatusPill status={s.status} />
             </div>
-            {/* Row 2: period + royalty */}
             <div className="flex items-center justify-between gap-2 min-w-0">
               <span className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.38)' }}>
                 {fmtPeriod(s.periodStart, s.periodEnd)}
               </span>
-              <span
-                className="text-base font-medium text-white tabular-nums flex-shrink-0"
-                style={mono}
-              >
+              <span className="text-base font-medium text-white tabular-nums flex-shrink-0" style={mono}>
                 {fmt(s.royaltyOwed)}
               </span>
             </div>
-            {/* Row 3: gross + split + date */}
             <div
               className="flex items-center gap-3 text-[11px]"
               style={{ color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-mono)' }}
@@ -128,66 +152,42 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
         <div className="h-1" />
       </div>
 
-      {/* ── DESKTOP: table (md+) ── */}
+      {/* Desktop: table */}
       <div className="hidden md:block min-w-0">
         <table className="w-full text-sm">
           <thead>
-            <tr
-              style={{
-                background: 'var(--surface-2)',
-                borderTop: '1px solid var(--border)',
-              }}
-            >
-              {['Artist', 'Period', 'Gross Revenue', 'Split', 'Royalty Owed', 'Status', 'Date'].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
+            <tr style={{ background: 'var(--surface-2)', borderTop: '1px solid var(--border)' }}>
+              {['Artist', 'Period', 'Gross Revenue', 'Split', 'Royalty Owed', 'Status', 'Date'].map((h) => (
+                <th
+                  key={h}
+                  className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {statements.map((s) => (
               <tr key={s.id} style={{ borderTop: '1px solid var(--border)' }}>
-                <td className="px-5 py-4 font-medium text-white max-w-[140px] truncate">
-                  {s.artistName}
-                </td>
-                <td
-                  className="px-5 py-4 whitespace-nowrap"
-                  style={{ color: 'rgba(255,255,255,0.5)' }}
-                >
+                <td className="px-5 py-4 font-medium text-white max-w-[140px] truncate">{s.artistName}</td>
+                <td className="px-5 py-4 whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.5)' }}>
                   {fmtPeriod(s.periodStart, s.periodEnd)}
                 </td>
-                <td
-                  className="px-5 py-4 tabular-nums"
-                  style={{ ...mono, color: 'rgba(255,255,255,0.7)' }}
-                >
+                <td className="px-5 py-4 tabular-nums" style={{ ...mono, color: 'rgba(255,255,255,0.7)' }}>
                   {fmt(s.grossRevenue)}
                 </td>
-                <td
-                  className="px-5 py-4 tabular-nums"
-                  style={{ ...mono, color: 'rgba(255,255,255,0.5)' }}
-                >
+                <td className="px-5 py-4 tabular-nums" style={{ ...mono, color: 'rgba(255,255,255,0.5)' }}>
                   {s.splitPercentage}%
                 </td>
-                <td
-                  className="px-5 py-4 font-medium text-white tabular-nums"
-                  style={mono}
-                >
+                <td className="px-5 py-4 font-medium text-white tabular-nums" style={mono}>
                   {fmt(s.royaltyOwed)}
                 </td>
                 <td className="px-5 py-4">
                   <StatusPill status={s.status} />
                 </td>
-                <td
-                  className="px-5 py-4 whitespace-nowrap"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
-                >
+                <td className="px-5 py-4 whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   {s.paidAt
                     ? fmtDate(s.paidAt)
                     : s.scheduledPayoutDate
@@ -200,7 +200,6 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
         </table>
       </div>
 
-      {/* Footer */}
       <div
         className="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1"
         style={{ borderTop: '1px solid var(--border)' }}

@@ -1,7 +1,7 @@
 'use client'
 
 import { Music2 } from 'lucide-react'
-import type { Release } from '@/lib/types'
+import type { Platform, Release } from '@/lib/types'
 import Sheet from '@/components/ui/Sheet'
 
 interface ReleaseDetailProps {
@@ -32,11 +32,35 @@ const PLATFORM_DISPLAY: Record<string, string> = {
   other: 'Other',
 }
 
-const PLATFORM_STATUS_COLOR: Record<string, string> = {
-  live: 'var(--primary)',
-  delivered: 'var(--primary)',
-  pending: 'var(--accent)',
-  error: 'var(--coral)',
+const KNOWN_PLATFORMS: { key: Platform['name']; abbr: string }[] = [
+  { key: 'spotify', abbr: 'Sp' },
+  { key: 'apple_music', abbr: 'Ap' },
+  { key: 'youtube_music', abbr: 'YT' },
+  { key: 'tidal', abbr: 'Td' },
+  { key: 'amazon_music', abbr: 'Az' },
+]
+
+const BADGE_STYLE: Record<string, { color: string; bg: string }> = {
+  live:      { color: 'var(--primary)', bg: 'rgba(61,219,184,0.12)' },
+  delivered: { color: 'var(--primary)', bg: 'rgba(61,219,184,0.12)' },
+  pending:   { color: 'var(--accent)',  bg: 'color-mix(in oklch, var(--accent) 12%, transparent)' },
+  error:     { color: 'var(--coral)',   bg: 'var(--coral-dim)' },
+}
+
+function PlatformBadge({ abbr, status }: { abbr: string; status: string | null }) {
+  const s = status ? (BADGE_STYLE[status] ?? null) : null
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums"
+      style={{
+        fontFamily: 'var(--font-mono)',
+        color: s?.color ?? 'rgba(255,255,255,0.2)',
+        background: s?.bg ?? 'var(--surface-2)',
+      }}
+    >
+      {abbr}
+    </span>
+  )
 }
 
 function fmtDate(iso: string) {
@@ -50,6 +74,7 @@ function fmtDate(iso: string) {
 export default function ReleaseDetail({ release, onClose }: ReleaseDetailProps) {
   const statusColor = STATUS_COLOR[release.status]
   const isDraftOrProcessing = release.status === 'draft' || release.status === 'processing'
+  const platformMap = new Map(release.platforms.map((p) => [p.name, p]))
 
   return (
     <Sheet open title={release.title} onClose={onClose}>
@@ -117,23 +142,27 @@ export default function ReleaseDetail({ release, onClose }: ReleaseDetailProps) 
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {release.platforms.map((p) => {
-              const dotColor = PLATFORM_STATUS_COLOR[p.status] ?? 'rgba(255,255,255,0.2)'
+            {KNOWN_PLATFORMS.map(({ key, abbr }) => {
+              const p = platformMap.get(key)
+              const displayName = PLATFORM_DISPLAY[key] ?? key
               return (
                 <div
-                  key={p.name}
+                  key={key}
                   className="flex items-center gap-3 rounded-lg px-3 py-2.5"
                   style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
                 >
-                  <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: dotColor }} />
-                  <span className="flex-1 text-sm text-white">
-                    {PLATFORM_DISPLAY[p.name] ?? p.name}
-                  </span>
+                  <PlatformBadge abbr={abbr} status={p?.status ?? null} />
+                  <span className="flex-1 text-sm text-white">{displayName}</span>
                   <span
                     className="text-[11px] capitalize flex-shrink-0"
-                    style={{ color: dotColor, fontFamily: 'var(--font-mono)' }}
+                    style={{
+                      color: p
+                        ? (BADGE_STYLE[p.status]?.color ?? 'rgba(255,255,255,0.3)')
+                        : 'rgba(255,255,255,0.2)',
+                      fontFamily: 'var(--font-mono)',
+                    }}
                   >
-                    {p.status}
+                    {p ? p.status : 'not set'}
                   </span>
                 </div>
               )

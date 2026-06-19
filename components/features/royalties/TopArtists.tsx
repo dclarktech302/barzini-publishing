@@ -1,20 +1,22 @@
+'use client'
+
 import type { ArtistRoyalty } from '@/lib/types'
 
 interface TopArtistsProps {
   artists: ArtistRoyalty[]
+  onArtistClick?: (artistId: string) => void
 }
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
-export default function TopArtists({ artists }: TopArtistsProps) {
+export default function TopArtists({ artists, onArtistClick }: TopArtistsProps) {
   return (
     <div
       className="rounded-xl overflow-hidden flex flex-col min-w-0"
       style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
     >
-      {/* Gradient hairline */}
       <div
         className="h-px w-full flex-shrink-0"
         style={{
@@ -36,23 +38,14 @@ export default function TopArtists({ artists }: TopArtistsProps) {
               ? 'var(--coral-dim)'
               : 'var(--surface-2)'
 
-          return (
-            <div
-              key={artist.artistId}
-              className="flex items-center gap-3 py-3 min-w-0"
-              style={{
-                borderBottom: i < artists.length - 1 ? '1px solid var(--border)' : undefined,
-              }}
-            >
-              {/* Rank */}
+          const row = (
+            <div className="flex items-center gap-3 min-w-0 w-full">
               <span
                 className="text-xs w-4 flex-shrink-0 text-center font-medium"
                 style={{ color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}
               >
                 {i + 1}
               </span>
-
-              {/* Avatar */}
               <div
                 className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
                 style={{
@@ -62,8 +55,6 @@ export default function TopArtists({ artists }: TopArtistsProps) {
               >
                 {artist.initials}
               </div>
-
-              {/* Name + meta */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white truncate">{artist.artistName}</p>
                 <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
@@ -73,8 +64,6 @@ export default function TopArtists({ artists }: TopArtistsProps) {
                   <span className="sm:hidden">{artist.releaseCount} rel.</span>
                 </p>
               </div>
-
-              {/* Amount + delta */}
               <div className="flex-shrink-0 text-right">
                 <p
                   className="text-sm font-medium text-white tabular-nums"
@@ -89,6 +78,29 @@ export default function TopArtists({ artists }: TopArtistsProps) {
                   {isPositive ? '+' : ''}{artist.deltaPercent.toFixed(1)}%
                 </span>
               </div>
+            </div>
+          )
+
+          return onArtistClick ? (
+            <button
+              key={artist.artistId}
+              onClick={() => onArtistClick(artist.artistId)}
+              className="flex items-center gap-3 py-3 min-w-0 w-full text-left transition-opacity hover:opacity-75"
+              style={{
+                borderBottom: i < artists.length - 1 ? '1px solid var(--border)' : undefined,
+              }}
+            >
+              {row}
+            </button>
+          ) : (
+            <div
+              key={artist.artistId}
+              className="flex items-center gap-3 py-3 min-w-0"
+              style={{
+                borderBottom: i < artists.length - 1 ? '1px solid var(--border)' : undefined,
+              }}
+            >
+              {row}
             </div>
           )
         })}
