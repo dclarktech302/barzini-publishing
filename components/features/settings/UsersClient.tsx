@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import type { UserRecord } from '@/lib/types'
 import UserList from '@/components/features/settings/UserList'
 import InviteUserForm from '@/components/features/settings/InviteUserForm'
@@ -12,21 +11,17 @@ interface TempPinDisplay {
   displayName: string
 }
 
-export default function UsersClient() {
+interface UsersClientProps {
+  currentUserId: string
+}
+
+export default function UsersClient({ currentUserId }: UsersClientProps) {
   const [users, setUsers] = useState<UserRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [showInvite, setShowInvite] = useState(false)
   const [tempPin, setTempPin] = useState<TempPinDisplay | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setCurrentUserId(data.user.id)
-    })
-  }, [])
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)

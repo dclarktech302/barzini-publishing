@@ -22,7 +22,7 @@ export default async function UsersPage() {
         <h1 className="mt-1 text-2xl font-semibold text-white">User management</h1>
       </div>
 
-      <UsersClient />
+      <UsersClient currentUserId={user.id} />
     </div>
   )
 }

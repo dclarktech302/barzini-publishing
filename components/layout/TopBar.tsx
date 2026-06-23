@@ -1,22 +1,20 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Menu } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { getDisplayName, getInitials } from '@/lib/utils'
+import { getInitials } from '@/lib/utils'
 
 interface TopBarProps {
-  user?: {
-    email?: string
-    user_metadata?: { display_name?: string }
-  }
+  user: User
+  displayName: string
   onMenuClick?: () => void
 }
 
-export default function TopBar({ user, onMenuClick }: TopBarProps) {
+export default function TopBar({ user: _user, displayName, onMenuClick }: TopBarProps) {
   const router = useRouter()
-  const displayName = user ? getDisplayName(user) : 'User'
   const initials = getInitials(displayName)
 
   async function handleSignOut() {
