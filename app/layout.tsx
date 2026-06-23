@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, DM_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -8,6 +8,11 @@ const dmMono = DM_Mono({
   weight: ['400', '500'],
   variable: '--font-mono',
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
 
 export const metadata: Metadata = {
   title: 'Barzini Publishing',
