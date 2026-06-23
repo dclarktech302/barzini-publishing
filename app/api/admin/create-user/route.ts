@@ -6,7 +6,6 @@ import { Resend } from 'resend'
 import InviteEmail from '@/components/emails/InviteEmail'
 import type { UserRole } from '@/lib/types'
 
-export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   const supabase = await createClient()

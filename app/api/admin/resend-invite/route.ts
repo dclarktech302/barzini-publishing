@@ -5,7 +5,6 @@ import { generateTempPin, getDisplayName } from '@/lib/utils'
 import { Resend } from 'resend'
 import InviteEmail from '@/components/emails/InviteEmail'
 
-export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
