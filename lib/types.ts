@@ -1,4 +1,14 @@
-export type UserRole = 'admin' | 'artist'
+export type UserRole = 'admin' | 'user'
+
+export interface UserRecord {
+  id: string
+  email: string
+  displayName: string
+  role: UserRole
+  status: 'active' | 'pending' | 'inactive'
+  createdAt: string
+  lastSignInAt?: string
+}
 
 export interface AppUser {
   id: string

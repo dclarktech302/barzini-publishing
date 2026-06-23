@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, LogOut, X } from 'lucide-react'
+import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, LogOut, X, Users2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const MAIN_NAV = [
@@ -73,6 +74,14 @@ function BrandMark() {
 export default function Sidebar({ open, onOpenChange }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      setIsAdmin(data.user?.user_metadata?.role === 'admin')
+    })
+  }, [])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -90,10 +99,19 @@ export default function Sidebar({ open, onOpenChange }: SidebarProps) {
             href={href}
             label={label}
             Icon={Icon}
-            active={pathname === href}
+            active={pathname === href || (href !== '/' && pathname.startsWith(href))}
             onClick={onNavClick}
           />
         ))}
+        {isAdmin && (
+          <NavLink
+            href="/settings/users"
+            label="Users"
+            Icon={Users2}
+            active={pathname.startsWith('/settings/users')}
+            onClick={onNavClick}
+          />
+        )}
         <button
           onClick={async () => {
             onNavClick?.()

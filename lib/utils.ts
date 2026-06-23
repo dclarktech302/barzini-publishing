@@ -19,3 +19,9 @@ export function getInitials(displayName: string): string {
   }
   return displayName.slice(0, 2).toUpperCase()
 }
+
+export function generateTempPin(): string {
+  const array = new Uint32Array(1)
+  crypto.getRandomValues(array)
+  return String((array[0] % 900000) + 100000)
+}

@@ -1,34 +1,14 @@
-/*
- * RBAC — Role-Based Access Control
- *
- * Roles defined in lib/types.ts: 'admin' | 'artist'
- * Role stored in Supabase auth user_metadata.role at invite time.
- *
- * Auth model: email + PIN login (see app/(auth)/login and
- * app/(auth)/verify-pin). PIN is stored as the Supabase auth password,
- * following the Nightdeck precedent — no separate credential table.
- *
- * user_metadata.pin_set === true gates dashboard access. Session
- * persistence is handled by Supabase's default refresh-token flow —
- * no custom session caching.
- *
- * Current v1: admin-only. All authenticated users with pin_set = true
- * are treated as admin.
- *
- * Future (artist portal):
- *   - role === 'artist' → redirect to /portal (not yet built)
- *   - artist users scoped to their own artistId (stored in user_metadata)
- *   - admin users have full label-wide access
- *
- * To check role in a Server Component:
- *   const { data: { user } } = await supabase.auth.getUser()
- *   const role = user?.user_metadata?.role as UserRole
- */
-
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 
-const PUBLIC_PATHS = ['/login', '/verify-pin', '/forgot-pin', '/reset-pin', '/api/auth/set-pin']
+const PUBLIC_PATHS = [
+  '/login',
+  '/change-pin',
+  '/forgot-pin',
+  '/reset-pin',
+  '/api/auth/update-pin',
+  '/api/auth/change-pin',
+]
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -66,9 +46,23 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  const pinSet = user.user_metadata?.pin_set === true
-  if (!pinSet) {
-    return NextResponse.redirect(new URL('/verify-pin', request.url))
+  const meta = user.user_metadata
+
+  if (meta?.active === false) {
+    await supabase.auth.signOut()
+    const url = new URL('/login', request.url)
+    url.searchParams.set('message', 'Your account has been deactivated. Please contact your administrator.')
+    return NextResponse.redirect(url)
+  }
+
+  if (meta?.force_pin_change === true || meta?.pin_set !== true) {
+    if (!pathname.startsWith('/change-pin')) {
+      return NextResponse.redirect(new URL('/change-pin', request.url))
+    }
+  }
+
+  if (pathname.startsWith('/settings/users') && meta?.role !== 'admin') {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return response
