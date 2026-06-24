@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isAdminOrAbove } from '@/lib/utils'
 import type { UserRecord, UserRole } from '@/lib/types'
-
 
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || user.user_metadata?.role !== 'admin') {
+  const callerRole = user?.user_metadata?.role as string | undefined
+  if (!user || !isAdminOrAbove(callerRole)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

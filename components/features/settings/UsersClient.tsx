@@ -1,21 +1,23 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import type { UserRecord } from '@/lib/types'
+import type { UserRecord, UserRole } from '@/lib/types'
 import UserList from '@/components/features/settings/UserList'
 import InviteUserForm from '@/components/features/settings/InviteUserForm'
-import { UserPlus, X } from 'lucide-react'
+import { UserPlus, X, AlertTriangle } from 'lucide-react'
 
 interface TempPinDisplay {
   pin: string
   displayName: string
+  emailWarning?: string
 }
 
 interface UsersClientProps {
   currentUserId: string
+  callerRole: UserRole
 }
 
-export default function UsersClient({ currentUserId }: UsersClientProps) {
+export default function UsersClient({ currentUserId, callerRole }: UsersClientProps) {
   const [users, setUsers] = useState<UserRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -49,10 +51,13 @@ export default function UsersClient({ currentUserId }: UsersClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       })
+      const data = await res.json() as { ok?: boolean; error?: string }
       if (res.ok) {
         setUsers((prev) =>
           prev.map((u) => u.id === userId ? { ...u, status: 'inactive' as const } : u)
         )
+      } else {
+        return data.error ?? 'Failed to deactivate user.'
       }
     } finally {
       setLoadingId(null)
@@ -67,19 +72,21 @@ export default function UsersClient({ currentUserId }: UsersClientProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
       })
-      const data = await res.json() as { tempPin?: string; error?: string }
+      const data = await res.json() as { ok?: boolean; tempPin?: string; emailWarning?: string; error?: string }
       if (res.ok && data.tempPin) {
         const u = users.find((x) => x.id === userId)
-        setTempPin({ pin: data.tempPin, displayName: u?.displayName ?? '' })
+        setTempPin({ pin: data.tempPin, displayName: u?.displayName ?? '', emailWarning: data.emailWarning })
+      } else if (!res.ok) {
+        return data.error ?? 'Failed to resend invite.'
       }
     } finally {
       setLoadingId(null)
     }
   }
 
-  function handleInviteSuccess(pin: string, displayName: string) {
+  function handleInviteSuccess(pin: string, displayName: string, emailWarning?: string) {
     setShowInvite(false)
-    setTempPin({ pin, displayName })
+    setTempPin({ pin, displayName, emailWarning })
     fetchUsers()
   }
 
@@ -126,6 +133,12 @@ export default function UsersClient({ currentUserId }: UsersClientProps) {
           >
             {tempPin.pin}
           </p>
+          {tempPin.emailWarning && (
+            <div className="flex items-start gap-2 mt-1">
+              <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--coral)' }} />
+              <p className="text-xs" style={{ color: 'var(--coral)' }}>{tempPin.emailWarning}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -137,6 +150,7 @@ export default function UsersClient({ currentUserId }: UsersClientProps) {
         <UserList
           users={users}
           currentUserId={currentUserId}
+          callerRole={callerRole}
           onDeactivate={handleDeactivate}
           onResendInvite={handleResendInvite}
           loadingId={loadingId}

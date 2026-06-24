@@ -7,7 +7,7 @@ import type { UserRole } from '@/lib/types'
 interface InviteUserFormProps {
   open: boolean
   onClose: () => void
-  onSuccess: (tempPin: string, displayName: string) => void
+  onSuccess: (tempPin: string, displayName: string, emailWarning?: string) => void
 }
 
 export default function InviteUserForm({ open, onClose, onSuccess }: InviteUserFormProps) {
@@ -27,7 +27,7 @@ export default function InviteUserForm({ open, onClose, onSuccess }: InviteUserF
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ displayName, email, role }),
       })
-      const data = await res.json() as { error?: string; tempPin?: string }
+      const data = await res.json() as { error?: string; tempPin?: string; emailWarning?: string }
       if (!res.ok) {
         setError(data.error ?? 'Something went wrong.')
         return
@@ -35,7 +35,7 @@ export default function InviteUserForm({ open, onClose, onSuccess }: InviteUserF
       setDisplayName('')
       setEmail('')
       setRole('user')
-      onSuccess(data.tempPin!, displayName)
+      onSuccess(data.tempPin!, displayName, data.emailWarning)
     } finally {
       setLoading(false)
     }

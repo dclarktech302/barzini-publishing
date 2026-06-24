@@ -1,12 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { isAdminOrAbove } from '@/lib/utils'
+import { type UserRole } from '@/lib/types'
 import UsersClient from '@/components/features/settings/UsersClient'
 
 export default async function UsersPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user || user.user_metadata?.role !== 'admin') {
+  const role = user?.user_metadata?.role as string | undefined
+  if (!user || !isAdminOrAbove(role)) {
     redirect('/')
   }
 
@@ -22,7 +25,7 @@ export default async function UsersPage() {
         <h1 className="mt-1 text-2xl font-semibold text-white">User management</h1>
       </div>
 
-      <UsersClient currentUserId={user.id} />
+      <UsersClient currentUserId={user.id} callerRole={role as UserRole} />
     </div>
   )
 }

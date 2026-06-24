@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
 import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, LogOut, X, Users2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminOrAbove } from '@/lib/utils'
 
 const MAIN_NAV = [
   { href: '/', label: 'Dashboard', Icon: LayoutGrid },
@@ -95,7 +96,7 @@ export default function Sidebar({ open, onOpenChange, role }: SidebarProps) {
             onClick={onNavClick}
           />
         ))}
-        {role === 'admin' && (
+        {isAdminOrAbove(role) && (
           <NavLink
             href="/settings/users"
             label="Users"

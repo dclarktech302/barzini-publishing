@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
+import { isAdminOrAbove } from '@/lib/utils'
 
 const PUBLIC_PATHS = [
   '/login',
@@ -61,7 +62,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (pathname.startsWith('/settings/users') && meta?.role !== 'admin') {
+  if (pathname.startsWith('/settings/users') && !isAdminOrAbove(meta?.role)) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
