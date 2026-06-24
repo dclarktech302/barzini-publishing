@@ -44,6 +44,7 @@ export default function InviteUserForm({ open, onClose, onSuccess }: InviteUserF
   const inputStyle = {
     background: 'var(--surface-2)',
     border: '1px solid var(--border)',
+    fontSize: '16px',
   }
 
   return (

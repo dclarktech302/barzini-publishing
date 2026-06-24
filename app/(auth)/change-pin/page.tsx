@@ -83,6 +83,7 @@ export default function ChangePinPage() {
                 border: '1px solid var(--border)',
                 fontFamily: 'var(--font-mono)',
                 letterSpacing: '0.15em',
+                fontSize: '16px',
               }}
             />
           </div>
@@ -104,6 +105,7 @@ export default function ChangePinPage() {
                 border: '1px solid var(--border)',
                 fontFamily: 'var(--font-mono)',
                 letterSpacing: '0.15em',
+                fontSize: '16px',
               }}
             />
           </div>

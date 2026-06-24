@@ -9,6 +9,7 @@ const inputStyle: React.CSSProperties = {
   background: 'var(--surface-2)',
   border: '1px solid var(--border)',
   color: 'white',
+  fontSize: '16px',
 }
 
 export default function PinUpdateForm() {
