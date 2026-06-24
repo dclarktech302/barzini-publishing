@@ -38,7 +38,7 @@ export default function TopBar({ user: _user, displayName, onMenuClick }: TopBar
 
   return (
     <header
-      className="flex items-center justify-between px-4 md:px-6 h-14 flex-shrink-0"
+      className="flex items-center justify-between px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10 h-14 flex-shrink-0"
       style={{
         background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',

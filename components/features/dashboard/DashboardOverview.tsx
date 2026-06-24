@@ -100,7 +100,7 @@ export default function DashboardOverview({ summary, releases, channels, artists
       </div>
 
       {/* Recent releases + distribution snapshot */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-4 min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] xl:grid-cols-[1.5fr_1fr] gap-4 min-w-0">
         {/* Recent releases */}
         <div
           className="rounded-xl overflow-hidden flex flex-col min-w-0"

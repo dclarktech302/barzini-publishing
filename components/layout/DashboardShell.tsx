@@ -24,8 +24,10 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
       <Sidebar open={sidebarOpen} onOpenChange={setSidebarOpen} role={role} />
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar user={user} displayName={displayName} onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 min-w-0">
-          {children}
+        <main className="flex-1 p-4 sm:p-5 md:p-6 lg:p-8 xl:p-10 min-w-0">
+          <div className="mx-auto w-full max-w-7xl min-w-0">
+            {children}
+          </div>
         </main>
       </div>
     </div>
