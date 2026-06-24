@@ -95,6 +95,7 @@ function LoginForm() {
                 background: 'var(--surface-2)',
                 border: '1px solid var(--border)',
                 color: 'white',
+                fontSize: '16px',
               }}
               className="w-full rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-1"
               placeholder="you@example.com"
@@ -124,6 +125,7 @@ function LoginForm() {
                 background: 'var(--surface-2)',
                 border: '1px solid var(--border)',
                 color: 'white',
+                fontSize: '16px',
               }}
               className="w-full rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-1 tracking-widest"
               placeholder="••••••"

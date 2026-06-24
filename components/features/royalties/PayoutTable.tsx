@@ -113,8 +113,8 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
         </button>
       </div>
 
-      {/* Mobile: card list */}
-      <div className="block md:hidden">
+      {/* Mobile/tablet: card list */}
+      <div className="block lg:hidden">
         {statements.map((s) => (
           <div
             key={s.id}
@@ -153,7 +153,7 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
       </div>
 
       {/* Desktop: table */}
-      <div className="hidden md:block min-w-0">
+      <div className="hidden lg:block min-w-0">
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderTop: '1px solid var(--border)' }}>
@@ -171,7 +171,7 @@ export default function PayoutTable({ statements }: PayoutTableProps) {
           <tbody>
             {statements.map((s) => (
               <tr key={s.id} style={{ borderTop: '1px solid var(--border)' }}>
-                <td className="px-5 py-4 font-medium text-white max-w-[140px] truncate">{s.artistName}</td>
+                <td className="px-5 py-4 font-medium text-white min-w-0 truncate">{s.artistName}</td>
                 <td className="px-5 py-4 whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.5)' }}>
                   {fmtPeriod(s.periodStart, s.periodEnd)}
                 </td>

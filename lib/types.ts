@@ -1,4 +1,18 @@
-export type UserRole = 'admin' | 'artist'
+// Role hierarchy: owner > admin > user
+// owner: elevated permissions, SQL-promoted only, never via invite form
+// admin: standard management permissions, invite-form assignable
+// user: base access level, invite-form assignable
+export type UserRole = 'owner' | 'admin' | 'user'
+
+export interface UserRecord {
+  id: string
+  email: string
+  displayName: string
+  role: UserRole
+  status: 'active' | 'pending' | 'inactive'
+  createdAt: string
+  lastSignInAt?: string
+}
 
 export interface AppUser {
   id: string

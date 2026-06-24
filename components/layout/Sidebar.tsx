@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as Dialog from '@radix-ui/react-dialog'
-import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, LogOut, X } from 'lucide-react'
+import { LayoutGrid, Users, Disc3, Banknote, Radio, BarChart3, Settings, LogOut, X, Users2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { isAdminOrAbove } from '@/lib/utils'
 
 const MAIN_NAV = [
   { href: '/', label: 'Dashboard', Icon: LayoutGrid },
@@ -19,6 +20,7 @@ const MAIN_NAV = [
 interface SidebarProps {
   open: boolean
   onOpenChange: (v: boolean) => void
+  role?: string
 }
 
 function NavLink({
@@ -70,7 +72,7 @@ function BrandMark() {
   )
 }
 
-export default function Sidebar({ open, onOpenChange }: SidebarProps) {
+export default function Sidebar({ open, onOpenChange, role }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -90,10 +92,19 @@ export default function Sidebar({ open, onOpenChange }: SidebarProps) {
             href={href}
             label={label}
             Icon={Icon}
-            active={pathname === href}
+            active={pathname === href || (href !== '/' && pathname.startsWith(href))}
             onClick={onNavClick}
           />
         ))}
+        {isAdminOrAbove(role) && (
+          <NavLink
+            href="/settings/users"
+            label="Users"
+            Icon={Users2}
+            active={pathname.startsWith('/settings/users')}
+            onClick={onNavClick}
+          />
+        )}
         <button
           onClick={async () => {
             onNavClick?.()
