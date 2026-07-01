@@ -73,89 +73,79 @@ function LoginForm() {
 
   return (
     <div
-      className="flex h-screen w-full overflow-hidden"
+      className="flex h-screen w-full flex-col md:flex-row overflow-hidden"
       style={{ background: 'var(--background)' }}
     >
-      {/* ── Left: image panel (desktop only) ── */}
+      {/* ── Image panel ──
+           Mobile:  top banner, ~45vh tall, no clip
+           Desktop: left column, 55% wide, diagonal clip on right edge  ── */}
       <div
-        className="relative hidden md:block flex-shrink-0"
+        className="relative flex-shrink-0 md:h-screen"
         style={{
-          width: '55%',
-          clipPath: 'polygon(0 0, 100% 0, 75% 100%, 0 100%)',
+          height: '45vw',
+          maxHeight: '45vh',
+          width: '100%',
         }}
       >
-        {/* Concert image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={CONCERT_IMAGE}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        {/* Bottom gradient */}
+        {/* Desktop geometry override */}
         <div
-          className="absolute inset-0"
+          className="hidden md:block absolute inset-0 h-screen overflow-hidden"
           style={{
-            background:
-              'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
+            width: '55vw',
+            clipPath: 'polygon(0 0, 100% 0, 75% 100%, 0 100%)',
           }}
-        />
-        {/* Brand copy */}
-        <div className="absolute bottom-10 left-10 select-none">
-          <p
-            className="leading-none text-white"
-            style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-            }}
-          >
-            Barzini Family
-          </p>
-          <p
-            className="leading-none"
-            style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color: 'var(--accent)',
-            }}
-          >
-            Music Group
-          </p>
-          <p
-            className="mt-3"
-            style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}
-          >
-            Artist management. Publishing. Distribution.
-          </p>
-        </div>
-      </div>
-
-      {/* ── Right: form panel ── */}
-      <div className="flex flex-1 items-center justify-center px-6 py-12 overflow-y-auto">
-        <div className="w-full max-w-[360px]">
-
-          {/* Mobile-only brand name */}
-          <div className="mb-8 md:hidden">
-            <p
-              className="leading-none text-white"
-              style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.03em' }}
-            >
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={CONCERT_IMAGE}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)' }}
+          />
+          <div className="absolute bottom-10 left-10 select-none">
+            <p className="leading-none text-white" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em' }}>
               Barzini Family
             </p>
-            <p
-              className="leading-none"
-              style={{
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                color: 'var(--accent)',
-              }}
-            >
+            <p className="leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--accent)' }}>
+              Music Group
+            </p>
+            <p className="mt-3" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
+              Artist management. Publishing. Distribution.
+            </p>
+          </div>
+        </div>
+
+        {/* Mobile banner (no clip, full width) */}
+        <div className="md:hidden absolute inset-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={CONCERT_IMAGE}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover object-top"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%)' }}
+          />
+          <div className="absolute bottom-5 left-5 select-none">
+            <p className="leading-none text-white" style={{ fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.03em' }}>
+              Barzini Family
+            </p>
+            <p className="leading-none" style={{ fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--accent)' }}>
               Music Group
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* ── Form panel ── */}
+      <div className="flex flex-1 items-center justify-center px-6 py-10 overflow-y-auto">
+        <div className="w-full max-w-[360px]">
 
           {/* Eyebrow + heading */}
           <p
