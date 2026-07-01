@@ -1,33 +1,33 @@
 'use client'
 
 import { useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
 import type { UserRecord, UserRole } from '@/lib/types'
-import { isOwner } from '@/lib/utils'
+import { isAdminOrAbove, isOwner } from '@/lib/utils'
 
 interface UserListProps {
   users: UserRecord[]
   currentUserId: string
   callerRole: UserRole
   onDeactivate: (userId: string) => Promise<string | undefined>
-  onResendInvite: (userId: string) => Promise<string | undefined>
+  onReactivate: (userId: string) => Promise<string | undefined>
   loadingId: string | null
 }
 
-type RowAction = 'none' | 'deactivate' | 'resend' | 'both'
+type RowAction = 'none' | 'deactivate' | 'reactivate'
 
 function getRowActions(row: UserRecord, callerRole: UserRole, currentUserId: string): RowAction {
   if (row.id === currentUserId) return 'none'
   if (row.role === 'owner') return 'none'
+  if (row.status === 'inactive') return isOwner(callerRole) ? 'reactivate' : 'none'
   if (row.role === 'admin' && !isOwner(callerRole)) return 'none'
-  if (row.status === 'inactive') return 'none'
-  if (row.status === 'pending') return 'both'
-  return 'deactivate'
+  if (isAdminOrAbove(callerRole)) return 'deactivate'
+  return 'none'
 }
 
 function StatusBadge({ status }: { status: UserRecord['status'] }) {
   const styles: Record<UserRecord['status'], { color: string; background: string; label: string }> = {
     active: { color: 'var(--primary)', background: 'rgba(61,219,184,0.1)', label: 'Active' },
-    pending: { color: 'var(--accent)', background: 'rgba(185,157,90,0.12)', label: 'Pending' },
     inactive: { color: 'rgba(255,255,255,0.35)', background: 'var(--surface-2)', label: 'Inactive' },
   }
   const s = styles[status]
@@ -56,12 +56,66 @@ function RoleBadge({ role }: { role: UserRecord['role'] }) {
   )
 }
 
+function DeactivateModal({
+  user,
+  open,
+  onOpenChange,
+  onConfirm,
+  loading,
+}: {
+  user: UserRecord
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  onConfirm: () => void
+  loading: boolean
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay
+          className="fixed inset-0 z-40"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+        />
+        <Dialog.Content
+          className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 outline-none"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+        >
+          <Dialog.Title className="text-base font-semibold text-white">
+            Deactivate {user.displayName}?
+          </Dialog.Title>
+          <Dialog.Description className="mt-2 text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            They will lose access to the app immediately. Only an owner can reactivate this account.
+          </Dialog.Description>
+          <div className="mt-5 flex justify-end gap-3">
+            <Dialog.Close asChild>
+              <button
+                className="rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+                style={{ background: 'var(--surface-2)', color: 'rgba(255,255,255,0.7)', border: '1px solid var(--border)' }}
+              >
+                Cancel
+              </button>
+            </Dialog.Close>
+            <button
+              onClick={onConfirm}
+              disabled={loading}
+              className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity disabled:opacity-40"
+              style={{ background: 'var(--coral)', color: '#fff' }}
+            >
+              {loading ? 'Working…' : 'Deactivate'}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 function RowActions({
   user,
   callerRole,
   currentUserId,
   onDeactivate,
-  onResendInvite,
+  onReactivate,
   loadingId,
   size,
 }: {
@@ -69,74 +123,64 @@ function RowActions({
   callerRole: UserRole
   currentUserId: string
   onDeactivate: (id: string) => Promise<string | undefined>
-  onResendInvite: (id: string) => Promise<string | undefined>
+  onReactivate: (id: string) => Promise<string | undefined>
   loadingId: string | null
   size: 'sm' | 'xs'
 }) {
   const [rowError, setRowError] = useState<string | null>(null)
-  const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
   const action = getRowActions(user, callerRole, currentUserId)
 
   if (action === 'none') return null
 
   const px = size === 'sm' ? 'px-3 py-1.5' : 'px-3 py-1'
 
-  async function handleDeactivate() {
+  async function handleDeactivateConfirm() {
     setRowError(null)
     const err = await onDeactivate(user.id)
     if (err) {
       setRowError(err)
-      setConfirmDeactivate(false)
     }
+    setModalOpen(false)
   }
 
-  async function handleResend() {
+  async function handleReactivate() {
     setRowError(null)
-    const err = await onResendInvite(user.id)
+    const err = await onReactivate(user.id)
     if (err) setRowError(err)
   }
 
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2 flex-wrap">
-        {(action === 'both' || action === 'resend') && (
+        {action === 'deactivate' && (
+          <>
+            <button
+              onClick={() => setModalOpen(true)}
+              disabled={loadingId === user.id}
+              className={`rounded-lg ${px} text-xs font-medium transition-opacity disabled:opacity-40`}
+              style={{ background: 'var(--coral-dim)', color: 'var(--coral)' }}
+            >
+              Deactivate
+            </button>
+            <DeactivateModal
+              user={user}
+              open={modalOpen}
+              onOpenChange={setModalOpen}
+              onConfirm={handleDeactivateConfirm}
+              loading={loadingId === user.id}
+            />
+          </>
+        )}
+        {action === 'reactivate' && (
           <button
-            onClick={handleResend}
+            onClick={handleReactivate}
             disabled={loadingId === user.id}
             className={`rounded-lg ${px} text-xs font-medium transition-opacity disabled:opacity-40`}
             style={{ background: 'var(--surface-2)', color: 'rgba(255,255,255,0.6)', border: '1px solid var(--border)' }}
           >
-            {loadingId === user.id ? 'Sending…' : 'Resend invite'}
+            {loadingId === user.id ? 'Working…' : 'Reactivate'}
           </button>
-        )}
-        {(action === 'both' || action === 'deactivate') && !confirmDeactivate && (
-          <button
-            onClick={() => setConfirmDeactivate(true)}
-            disabled={loadingId === user.id}
-            className={`rounded-lg ${px} text-xs font-medium transition-opacity disabled:opacity-40`}
-            style={{ background: 'var(--coral-dim)', color: 'var(--coral)' }}
-          >
-            Deactivate
-          </button>
-        )}
-        {confirmDeactivate && (
-          <>
-            <button
-              onClick={handleDeactivate}
-              disabled={loadingId === user.id}
-              className={`rounded-lg ${px} text-xs font-medium transition-opacity disabled:opacity-40`}
-              style={{ background: 'var(--coral)', color: '#fff' }}
-            >
-              {loadingId === user.id ? 'Working…' : 'Confirm'}
-            </button>
-            <button
-              onClick={() => setConfirmDeactivate(false)}
-              className={`rounded-lg ${px} text-xs font-medium`}
-              style={{ background: 'var(--surface-2)', color: 'rgba(255,255,255,0.55)', border: '1px solid var(--border)' }}
-            >
-              Cancel
-            </button>
-          </>
         )}
       </div>
       {rowError && (
@@ -146,7 +190,12 @@ function RowActions({
   )
 }
 
-export default function UserList({ users, currentUserId, callerRole, onDeactivate, onResendInvite, loadingId }: UserListProps) {
+export default function UserList({ users, currentUserId, callerRole, onDeactivate, onReactivate, loadingId }: UserListProps) {
+  const [showInactive, setShowInactive] = useState(false)
+
+  const displayedUsers = showInactive ? users : users.filter((u) => u.status !== 'inactive')
+  const inactiveCount = users.filter((u) => u.status === 'inactive').length
+
   if (users.length === 0) {
     return (
       <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -157,17 +206,31 @@ export default function UserList({ users, currentUserId, callerRole, onDeactivat
 
   return (
     <>
+      {inactiveCount > 0 && (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowInactive((v) => !v)}
+            className="text-xs transition-opacity hover:opacity-80"
+            style={{ color: 'rgba(255,255,255,0.4)' }}
+          >
+            {showInactive ? 'Hide inactive' : `Show inactive (${inactiveCount})`}
+          </button>
+        </div>
+      )}
+
       {/* Mobile cards */}
       <div className="flex flex-col gap-3 md:hidden">
-        {users.map((u) => (
+        {displayedUsers.map((u) => (
           <div
             key={u.id}
-            className="rounded-xl p-4 flex flex-col gap-3"
+            className={`rounded-xl p-4 flex flex-col gap-3 ${u.status === 'inactive' ? 'opacity-50' : ''}`}
             style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{u.displayName}</p>
+                <p className={`text-sm font-medium text-white truncate ${u.status === 'inactive' ? 'italic' : ''}`}>
+                  {u.displayName}
+                </p>
                 <p className="text-xs truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
                   {u.email}
                 </p>
@@ -182,7 +245,7 @@ export default function UserList({ users, currentUserId, callerRole, onDeactivat
               callerRole={callerRole}
               currentUserId={currentUserId}
               onDeactivate={onDeactivate}
-              onResendInvite={onResendInvite}
+              onReactivate={onReactivate}
               loadingId={loadingId}
               size="sm"
             />
@@ -210,12 +273,15 @@ export default function UserList({ users, currentUserId, callerRole, onDeactivat
             </tr>
           </thead>
           <tbody>
-            {users.map((u, i) => (
+            {displayedUsers.map((u, i) => (
               <tr
                 key={u.id}
+                className={u.status === 'inactive' ? 'opacity-50' : ''}
                 style={{ borderTop: i > 0 ? '1px solid var(--border)' : undefined }}
               >
-                <td className="px-4 py-3 text-white font-medium whitespace-nowrap">{u.displayName}</td>
+                <td className={`px-4 py-3 text-white font-medium whitespace-nowrap ${u.status === 'inactive' ? 'italic' : ''}`}>
+                  {u.displayName}
+                </td>
                 <td className="px-4 py-3 whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {u.email}
                 </td>
@@ -235,7 +301,7 @@ export default function UserList({ users, currentUserId, callerRole, onDeactivat
                       callerRole={callerRole}
                       currentUserId={currentUserId}
                       onDeactivate={onDeactivate}
-                      onResendInvite={onResendInvite}
+                      onReactivate={onReactivate}
                       loadingId={loadingId}
                       size="xs"
                     />

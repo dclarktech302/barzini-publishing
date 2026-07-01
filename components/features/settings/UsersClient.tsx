@@ -1,15 +1,21 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import type { UserRecord, UserRole } from '@/lib/types'
 import UserList from '@/components/features/settings/UserList'
 import InviteUserForm from '@/components/features/settings/InviteUserForm'
+import { deactivateUser, reactivateUser } from '@/app/actions/users'
 import { UserPlus, X, AlertTriangle } from 'lucide-react'
 
 interface TempPinDisplay {
   pin: string
   displayName: string
   emailWarning?: string
+}
+
+interface Toast {
+  message: string
+  type: 'success' | 'error'
 }
 
 interface UsersClientProps {
@@ -24,6 +30,14 @@ export default function UsersClient({ currentUserId, callerRole }: UsersClientPr
   const [showInvite, setShowInvite] = useState(false)
   const [tempPin, setTempPin] = useState<TempPinDisplay | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<Toast | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function showToast(message: string, type: 'success' | 'error') {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    setToast({ message, type })
+    toastTimerRef.current = setTimeout(() => setToast(null), 4000)
+  }
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -43,42 +57,35 @@ export default function UsersClient({ currentUserId, callerRole }: UsersClientPr
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
-  async function handleDeactivate(userId: string) {
+  async function handleDeactivate(userId: string): Promise<string | undefined> {
     setLoadingId(userId)
     try {
-      const res = await fetch('/api/admin/deactivate-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      })
-      const data = await res.json() as { ok?: boolean; error?: string }
-      if (res.ok) {
-        setUsers((prev) =>
-          prev.map((u) => u.id === userId ? { ...u, status: 'inactive' as const } : u)
-        )
-      } else {
-        return data.error ?? 'Failed to deactivate user.'
+      const result = await deactivateUser(userId)
+      if ('error' in result) {
+        showToast(result.error, 'error')
+        return result.error
       }
+      setUsers((prev) =>
+        prev.map((u) => u.id === userId ? { ...u, status: 'inactive' as const } : u)
+      )
+      showToast('User deactivated.', 'success')
     } finally {
       setLoadingId(null)
     }
   }
 
-  async function handleResendInvite(userId: string) {
+  async function handleReactivate(userId: string): Promise<string | undefined> {
     setLoadingId(userId)
     try {
-      const res = await fetch('/api/admin/resend-invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
-      })
-      const data = await res.json() as { ok?: boolean; tempPin?: string; emailWarning?: string; error?: string }
-      if (res.ok && data.tempPin) {
-        const u = users.find((x) => x.id === userId)
-        setTempPin({ pin: data.tempPin, displayName: u?.displayName ?? '', emailWarning: data.emailWarning })
-      } else if (!res.ok) {
-        return data.error ?? 'Failed to resend invite.'
+      const result = await reactivateUser(userId)
+      if ('error' in result) {
+        showToast(result.error, 'error')
+        return result.error
       }
+      setUsers((prev) =>
+        prev.map((u) => u.id === userId ? { ...u, status: 'active' as const } : u)
+      )
+      showToast('User reactivated.', 'success')
     } finally {
       setLoadingId(null)
     }
@@ -152,7 +159,7 @@ export default function UsersClient({ currentUserId, callerRole }: UsersClientPr
           currentUserId={currentUserId}
           callerRole={callerRole}
           onDeactivate={handleDeactivate}
-          onResendInvite={handleResendInvite}
+          onReactivate={handleReactivate}
           loadingId={loadingId}
         />
       )}
@@ -162,6 +169,19 @@ export default function UsersClient({ currentUserId, callerRole }: UsersClientPr
         onClose={() => setShowInvite(false)}
         onSuccess={handleInviteSuccess}
       />
+
+      {toast && (
+        <div
+          className="fixed bottom-6 right-6 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-lg"
+          style={{
+            background: toast.type === 'success' ? 'rgba(61,219,184,0.15)' : 'rgba(255,80,80,0.15)',
+            border: `1px solid ${toast.type === 'success' ? 'rgba(61,219,184,0.3)' : 'rgba(255,80,80,0.3)'}`,
+            color: toast.type === 'success' ? 'var(--primary)' : 'var(--coral)',
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
     </>
   )
 }

@@ -24,7 +24,7 @@ export async function GET() {
     const meta = u.user_metadata ?? {}
     const active = meta.active !== false
     const pinSet = meta.pin_set === true
-    const status: UserRecord['status'] = !active ? 'inactive' : !pinSet ? 'pending' : 'active'
+    const status: UserRecord['status'] = !active ? 'inactive' : 'active'
     return {
       id: u.id,
       email: u.email ?? '',

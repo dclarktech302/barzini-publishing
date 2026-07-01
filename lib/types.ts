@@ -9,7 +9,7 @@ export interface UserRecord {
   email: string
   displayName: string
   role: UserRole
-  status: 'active' | 'pending' | 'inactive'
+  status: 'active' | 'inactive'
   createdAt: string
   lastSignInAt?: string
 }

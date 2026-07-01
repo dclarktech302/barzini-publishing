@@ -92,7 +92,7 @@ export default function Sidebar({ open, onOpenChange, role }: SidebarProps) {
             href={href}
             label={label}
             Icon={Icon}
-            active={pathname === href || (href !== '/' && pathname.startsWith(href))}
+            active={pathname === href || (href !== '/' && href !== '/settings' && pathname.startsWith(href))}
             onClick={onNavClick}
           />
         ))}

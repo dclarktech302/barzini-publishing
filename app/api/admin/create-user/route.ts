@@ -46,6 +46,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: createError.message }, { status: 400 })
   }
 
+  let profileWarning: string | undefined
+  const { error: profileError } = await admin
+    .from('profiles')
+    .insert({
+      id: created.user.id,
+      email,
+      display_name: displayName,
+      role,
+      status: 'active',
+      pin_set: false,
+      force_pin_change: true,
+    })
+  if (profileError) {
+    console.error('Profile insert failed:', profileError)
+    profileWarning = 'User created but profile record failed to sync.'
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
   const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -63,8 +80,9 @@ export async function POST(request: Request) {
       userId: created.user.id,
       tempPin,
       emailWarning: 'User created but invite email failed to send. Share the PIN manually and use Resend invite to retry.',
+      profileWarning,
     })
   }
 
-  return NextResponse.json({ ok: true, userId: created.user.id, tempPin })
+  return NextResponse.json({ ok: true, userId: created.user.id, tempPin, profileWarning })
 }
