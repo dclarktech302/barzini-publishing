@@ -71,238 +71,185 @@ function LoginForm() {
     router.refresh()
   }
 
-  return (
-    <div
-      className="flex h-screen w-full overflow-hidden"
-      style={{ background: 'var(--background)' }}
-    >
-      {/* ── Left: image panel (desktop only) ── */}
-      <div
-        className="relative hidden md:block flex-shrink-0"
-        style={{
-          width: '55%',
-          clipPath: 'polygon(0 0, 100% 0, 75% 100%, 0 100%)',
-        }}
+  const formContent = (
+    <div className="w-full max-w-[360px]">
+      <p
+        className="uppercase"
+        style={{ color: 'var(--primary)', fontSize: '11px', letterSpacing: '0.15em' }}
       >
-        {/* Concert image */}
+        Secure Access
+      </p>
+      <h1
+        className="mt-1 text-white"
+        style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: '2rem' }}
+      >
+        Sign in
+      </h1>
+
+      {message && (
+        <div
+          className="mb-6 rounded-lg px-4 py-3 text-sm"
+          style={{
+            background: 'rgba(61,219,184,0.1)',
+            border: '1px solid rgba(61,219,184,0.2)',
+            color: 'var(--primary)',
+          }}
+        >
+          {decodeURIComponent(message)}
+        </div>
+      )}
+
+      <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="email"
+            className="uppercase"
+            style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', letterSpacing: '0.08em' }}
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="w-full rounded-lg px-4 py-3 text-white outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary)]"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', fontSize: '16px' }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="pin"
+            className="uppercase"
+            style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', letterSpacing: '0.08em' }}
+          >
+            PIN
+          </label>
+          <input
+            id="pin"
+            type="password"
+            inputMode="numeric"
+            pattern="\d{6,8}"
+            minLength={6}
+            maxLength={8}
+            autoComplete="current-password"
+            required
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+            placeholder="••••••"
+            className="w-full rounded-lg px-4 py-3 text-white outline-none tracking-widest transition-shadow focus:ring-2 focus:ring-[var(--primary)]"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', fontSize: '16px' }}
+          />
+        </div>
+
+        {error && (
+          <p style={{ color: 'var(--coral)', fontSize: '13px', marginTop: '-8px' }}>
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg py-3 font-semibold transition-all disabled:opacity-50"
+          style={{ background: 'var(--primary)', color: 'var(--primary-foreground)' }}
+          onMouseEnter={(e) => { if (!loading) e.currentTarget.style.filter = 'brightness(1.08)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.filter = '' }}
+        >
+          {loading && <Spinner />}
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+
+        <p className="text-center" style={{ color: 'rgba(255,255,255,0.35)', fontSize: '13px' }}>
+          <Link
+            href="/forgot-pin"
+            className="underline underline-offset-2 transition-opacity hover:opacity-70"
+            style={{ color: 'rgba(255,255,255,0.35)' }}
+          >
+            Forgot PIN?
+          </Link>
+        </p>
+      </form>
+    </div>
+  )
+
+  return (
+    <>
+      {/* ── Mobile / tablet: full-screen background image, form centered over it ── */}
+      <div
+        className="relative flex min-h-screen w-full items-center justify-center px-6 py-12 md:hidden"
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={CONCERT_IMAGE}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
-        {/* Bottom gradient */}
+        {/* Dark overlay so form is readable */}
         <div
           className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)',
-          }}
+          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.75) 100%)' }}
         />
-        {/* Brand copy */}
-        <div className="absolute bottom-10 left-10 select-none">
-          <p
-            className="leading-none text-white"
-            style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-            }}
-          >
+        {/* Brand name top-left */}
+        <div className="absolute top-8 left-6 select-none">
+          <p className="leading-none text-white" style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.03em' }}>
             Barzini Family
           </p>
-          <p
-            className="leading-none"
-            style={{
-              fontSize: 'clamp(2rem, 4vw, 3rem)',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color: 'var(--accent)',
-            }}
-          >
+          <p className="leading-none" style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--accent)' }}>
             Music Group
           </p>
-          <p
-            className="mt-3"
-            style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}
-          >
-            Artist management. Publishing. Distribution.
-          </p>
+        </div>
+        {/* Form */}
+        <div className="relative z-10 w-full max-w-[360px]">
+          {formContent}
         </div>
       </div>
 
-      {/* ── Right: form panel ── */}
-      <div className="flex flex-1 items-center justify-center px-6 py-12 overflow-y-auto">
-        <div className="w-full max-w-[360px]">
-
-          {/* Mobile-only brand name */}
-          <div className="mb-8 md:hidden">
-            <p
-              className="leading-none text-white"
-              style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.03em' }}
-            >
+      {/* ── Desktop: diagonal split ── */}
+      <div className="hidden md:flex h-screen w-full overflow-hidden" style={{ background: 'var(--background)' }}>
+        {/* Left: image panel with diagonal clip */}
+        <div
+          className="relative flex-shrink-0 h-full"
+          style={{
+            width: '55%',
+            clipPath: 'polygon(0 0, 100% 0, 75% 100%, 0 100%)',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={CONCERT_IMAGE}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.55) 100%)' }}
+          />
+          <div className="absolute bottom-10 left-10 select-none">
+            <p className="leading-none text-white" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em' }}>
               Barzini Family
             </p>
-            <p
-              className="leading-none"
-              style={{
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                color: 'var(--accent)',
-              }}
-            >
+            <p className="leading-none" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--accent)' }}>
               Music Group
             </p>
-          </div>
-
-          {/* Eyebrow + heading */}
-          <p
-            className="uppercase"
-            style={{
-              color: 'var(--primary)',
-              fontSize: '11px',
-              letterSpacing: '0.15em',
-            }}
-          >
-            Secure Access
-          </p>
-          <h1
-            className="mt-1 text-white"
-            style={{
-              fontSize: '2rem',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              marginBottom: '2rem',
-            }}
-          >
-            Sign in
-          </h1>
-
-          {/* ?message= banner */}
-          {message && (
-            <div
-              className="mb-6 rounded-lg px-4 py-3 text-sm"
-              style={{
-                background: 'rgba(61,219,184,0.1)',
-                border: '1px solid rgba(61,219,184,0.2)',
-                color: 'var(--primary)',
-              }}
-            >
-              {decodeURIComponent(message)}
-            </div>
-          )}
-
-          <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Email */}
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="email"
-                className="uppercase"
-                style={{
-                  color: 'rgba(255,255,255,0.5)',
-                  fontSize: '12px',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-lg px-4 py-3 text-white outline-none transition-shadow focus:ring-2 focus:ring-[var(--primary)]"
-                style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  fontSize: '16px',
-                }}
-              />
-            </div>
-
-            {/* PIN */}
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="pin"
-                className="uppercase"
-                style={{
-                  color: 'rgba(255,255,255,0.5)',
-                  fontSize: '12px',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                PIN
-              </label>
-              <input
-                id="pin"
-                type="password"
-                inputMode="numeric"
-                pattern="\d{6,8}"
-                minLength={6}
-                maxLength={8}
-                autoComplete="current-password"
-                required
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="••••••"
-                className="w-full rounded-lg px-4 py-3 text-white outline-none tracking-widest transition-shadow focus:ring-2 focus:ring-[var(--primary)]"
-                style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  fontSize: '16px',
-                }}
-              />
-            </div>
-
-            {/* Error */}
-            {error && (
-              <p style={{ color: 'var(--coral)', fontSize: '13px', marginTop: '-8px' }}>
-                {error}
-              </p>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg py-3 font-semibold transition-all disabled:opacity-50"
-              style={{
-                background: 'var(--primary)',
-                color: 'var(--primary-foreground)',
-              }}
-              onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.filter = 'brightness(1.08)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.filter = ''
-              }}
-            >
-              {loading && <Spinner />}
-              {loading ? 'Signing in…' : 'Sign in'}
-            </button>
-
-            {/* Forgot PIN */}
-            <p
-              className="text-center underline underline-offset-2"
-              style={{ color: 'rgba(255,255,255,0.35)', fontSize: '13px' }}
-            >
-              <Link
-                href="/forgot-pin"
-                className="transition-opacity hover:opacity-70"
-                style={{ color: 'rgba(255,255,255,0.35)' }}
-              >
-                Forgot PIN?
-              </Link>
+            <p className="mt-3" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}>
+              Artist management. Publishing. Distribution.
             </p>
-          </form>
+          </div>
+        </div>
+
+        {/* Right: form panel */}
+        <div className="flex flex-1 items-center justify-center px-6 py-12 overflow-y-auto">
+          {formContent}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
