@@ -65,12 +65,6 @@ export default function TopBar({ user: _user, displayName, onMenuClick }: TopBar
             aria-label="User menu"
           >
             {avatar}
-            <span
-              className="hidden sm:block text-xs truncate max-w-[140px]"
-              style={{ color: 'rgba(255,255,255,0.55)' }}
-            >
-              {displayName}
-            </span>
           </button>
         </DropdownMenu.Trigger>
 
